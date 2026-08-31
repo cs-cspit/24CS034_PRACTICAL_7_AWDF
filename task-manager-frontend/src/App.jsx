@@ -16,6 +16,7 @@ function App() {
     try {
       setLoading(true);
       setError("");
+      setMessage("");
       const response = await fetch(API_URL);
       if (!response.ok) {
         throw new Error("Failed to fetch tasks");
@@ -36,13 +37,14 @@ function App() {
   // Add new task
   const addTask = async (e) => {
     e.preventDefault();
+    setError("");
+    setMessage("");
     if (!title.trim()) {
       setError("Task title is required");
       return;
     }
     try {
       setLoading(true);
-      setError("");
       const response = await fetch(API_URL, {
         method: "POST",
         headers: {
@@ -71,6 +73,8 @@ function App() {
 
   // Update existing task
   const updateTask = async (task) => {
+    setError("");
+    setMessage("");
     const newTitle = window.prompt("Enter new task title:", task.title);
     if (!newTitle || !newTitle.trim()) {
       return;
@@ -81,7 +85,6 @@ function App() {
     );
     try {
       setLoading(true);
-      setError("");
       const response = await fetch(`${API_URL}/${task._id}`, {
         method: "PUT",
         headers: {
@@ -110,6 +113,8 @@ function App() {
 
   // Delete task with confirmation
   const deleteTask = async (id) => {
+    setError("");
+    setMessage("");
     const confirmed = window.confirm(
       "Are you sure you want to delete this task?"
     );
@@ -118,7 +123,6 @@ function App() {
     }
     try {
       setLoading(true);
-      setError("");
       const response = await fetch(`${API_URL}/${id}`, {
         method: "DELETE"
       });
