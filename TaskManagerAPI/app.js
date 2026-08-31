@@ -4,12 +4,14 @@ dns.setServers(["8.8.8.8", "1.1.1.1"]);
 require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
+const cors = require("cors");
 const app = express();
 const logger = require("./middleware/logger");
 const errorHandler = require("./middleware/errorHandler");
 const taskRoutes = require("./routes/taskRoutes");
 
 // Middleware
+app.use(cors());
 app.use(express.json());
 app.use(logger);
 
@@ -35,8 +37,8 @@ app.use((req, res) => {
 // Global Error Handler
 app.use(errorHandler);
 
-// Start Server
-const PORT = 3000;
+// Start Server on Port 5000
+const PORT = 5000;
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
 });

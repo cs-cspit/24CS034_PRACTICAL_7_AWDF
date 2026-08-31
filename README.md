@@ -9,33 +9,30 @@
 
 ---
 
-## 🚀 PRACTICAL 5 STARTS FROM HERE: MongoDB Integration and Schema Design with Mongoose
-Practical 5 evolves the Task Manager API by replacing the in-memory array with persistent storage using **MongoDB Atlas** and **Mongoose ODM**.
-
-### 🌟 Practical 5 Key Enhancements
-1. **Mongoose ODM Integration**: Added `mongoose` for database modeling and schema enforcement.
-2. **Task Schema & Model** (`models/Task.js`):
-   - `title`: String, required.
-   - `description`: String, optional.
-   - `completed`: Boolean, default `false`.
-   - `createdAt`: Date, default `Date.now`.
-3. **Async/Await CRUD Operations**:
-   - `GET /tasks`: Uses `Task.find()`.
-   - `POST /tasks`: Uses `task.save()`.
-   - `PUT /tasks/:id`: Uses `Task.findByIdAndUpdate()` with `{ new: true, runValidators: true }`.
-   - `DELETE /tasks/:id`: Uses `Task.findByIdAndDelete()`.
-4. **Enhanced Error Handling** (`middleware/errorHandler.js`):
-   - `ValidationError` handling returning `400 Bad Request` with structured JSON.
-   - `CastError` handling returning `400 Bad Request` for invalid ObjectIds.
-   - `500 Internal Server Error` for unhandled exceptions.
-5. **Secure Database Configuration**:
-   - Uses environment variable `MONGODB_URI` via `dotenv` without exposing credentials.
+## 📌 Practical 5: MongoDB Integration and Schema Design with Mongoose
+- Integrated **MongoDB Atlas** cloud database with `taskdb` database and `tasks` collection.
+- Defined Mongoose schema and model (`models/Task.js`) with required `title`, defaults, and timestamps.
+- Refactored all CRUD operations to asynchronous Mongoose methods (`Task.find()`, `task.save()`, `Task.findByIdAndUpdate()` with `runValidators: true`, `Task.findByIdAndDelete()`).
+- Added structured error handling for `ValidationError` and `CastError` (`400 Bad Request`).
 
 ---
 
-## 📂 Project Structure
+## 🚀 PRACTICAL 6 STARTS FROM HERE: Connecting React Frontend to Express + MongoDB Backend
+
+Practical 6 connects a **React (Vite)** frontend to the **Express + MongoDB Atlas** backend using the native browser **Fetch API** and **CORS**.
+
+### 🌟 Practical 6 Architecture Flow
 ```
-TaskManagerAPI/
+React Frontend (localhost:5173)
+       ↓ (Fetch API / CORS)
+Express Backend (localhost:5000)
+       ↓ (Mongoose ODM)
+MongoDB Atlas (Cloud Cluster: taskdb.tasks)
+```
+
+### 📂 Project Structure
+```
+TaskManagerAPI/                     # Backend (Port 5000)
 ├── middleware/
 │   ├── logger.js
 │   └── errorHandler.js
@@ -48,41 +45,44 @@ TaskManagerAPI/
 ├── app.js
 ├── package.json
 └── package-lock.json
+
+task-manager-frontend/              # Frontend (Port 5173)
+├── public/
+├── src/
+│   ├── App.jsx
+│   ├── App.css
+│   └── main.jsx
+├── index.html
+├── package.json
+└── package-lock.json
 ```
 
 ---
 
-## ⚙️ Setup & Running
+## ⚙️ How to Run Both Applications
 
-1. **Navigate to the project folder:**
-   ```bash
-   cd TaskManagerAPI
-   ```
+### 1. Terminal 1: Start Backend (Port 5000)
+```bash
+cd TaskManagerAPI
+npm install
+npm start
+```
+*Output: `Server running at http://localhost:5000` & `MongoDB connected successfully`*
 
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-
-3. **Configure Environment Variables:**
-   Create a `.env` file inside `TaskManagerAPI/` (refer to `.env.example`):
-   ```env
-   MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/taskdb
-   ```
-
-4. **Start the API Server:**
-   ```bash
-   npm start
-   ```
-   The server will start on `http://localhost:3000` and connect to MongoDB Atlas.
+### 2. Terminal 2: Start Frontend (Port 5173)
+```bash
+cd task-manager-frontend
+npm install
+npm run dev
+```
+*Access the app at: `http://localhost:5173`*
 
 ---
 
-## 🌐 API Endpoints
-| Method | Endpoint | Description | Status Code |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/tasks` | Retrieve all tasks from MongoDB Atlas | `200 OK` |
-| `POST` | `/tasks` | Create a new task (validates required title) | `201 Created` / `400 Bad Request` |
-| `PUT` | `/tasks/:id` | Update an existing task by MongoDB ObjectId | `200 OK` / `404 Not Found` / `400 Bad Request` |
-| `DELETE` | `/tasks/:id` | Delete a task by MongoDB ObjectId | `200 OK` / `404 Not Found` / `400 Bad Request` |
-| `*` | `/*` | Route Not Found handler | `404 Not Found` |
+## 🌐 Full CRUD Mapping
+| Action | Frontend Trigger | HTTP Method | API Endpoint | Database Operation |
+| :--- | :--- | :--- | :--- | :--- |
+| **Read** | Page Load (`useEffect`) | `GET` | `http://localhost:5000/tasks` | `Task.find()` |
+| **Create** | Add Task Form Submit | `POST` | `http://localhost:5000/tasks` | `task.save()` |
+| **Update** | Update Button (`prompt`) | `PUT` | `http://localhost:5000/tasks/:id` | `Task.findByIdAndUpdate()` |
+| **Delete** | Delete Button (`confirm`) | `DELETE` | `http://localhost:5000/tasks/:id` | `Task.findByIdAndDelete()` |
