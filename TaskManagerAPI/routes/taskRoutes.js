@@ -1,24 +1,65 @@
 const express = require("express");
 const router = express.Router();
 const Task = require("../models/Task");
+const auth = require("../middleware/auth");
+const {
+    validateCreateTask,
+    validateUpdateTask,
+    validateTaskId
+} = require("../middleware/validateTask");
 
-// GET / - Retrieve all tasks
+// Step 6: Apply the auth middleware to all task routes
+router.use(auth);
+
+/**
+ * @route   GET /tasks
+ * @desc    Retrieve all tasks for the authenticated user
+ * @access  Private (Protected with Auth Middleware)
+ */
 router.get("/", async (req, res, next) => {
     try {
-        const tasks = await Task.find();
+        // Query tasks belonging to the authenticated user, or general unassigned tasks
+        const tasks = await Task.find({
+            $or: [{ user: req.user.id }, { user: { $exists: false } }, { user: null }]
+        }).sort({ createdAt: -1 });
+
         res.status(200).json(tasks);
     } catch (error) {
         next(error);
     }
 });
 
-// POST / - Create a new task
-router.post("/", async (req, res, next) => {
+/**
+ * @route   GET /tasks/:id
+ * @desc    Retrieve a single task by ID
+ * @access  Private (Protected with Auth Middleware)
+ */
+router.get("/:id", validateTaskId, async (req, res, next) => {
+    try {
+        const task = await Task.findById(req.params.id);
+        if (!task) {
+            return res.status(404).json({
+                message: "Task not found"
+            });
+        }
+        res.status(200).json(task);
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
+ * @route   POST /tasks
+ * @desc    Create a new task (Pipeline: Auth Middleware -> Validation Middleware -> Controller)
+ * @access  Private
+ */
+router.post("/", validateCreateTask, async (req, res, next) => {
     try {
         const task = new Task({
             title: req.body.title,
-            description: req.body.description,
-            completed: req.body.completed
+            description: req.body.description || "",
+            completed: req.body.completed || false,
+            user: req.user.id
         });
         const savedTask = await task.save();
         res.status(201).json({
@@ -30,8 +71,12 @@ router.post("/", async (req, res, next) => {
     }
 });
 
-// PUT /:id - Update a task
-router.put("/:id", async (req, res, next) => {
+/**
+ * @route   PUT /tasks/:id
+ * @desc    Update a task (Pipeline: Auth Middleware -> Validation Middleware -> Controller)
+ * @access  Private
+ */
+router.put("/:id", validateUpdateTask, async (req, res, next) => {
     try {
         const task = await Task.findByIdAndUpdate(
             req.params.id,
@@ -55,8 +100,12 @@ router.put("/:id", async (req, res, next) => {
     }
 });
 
-// DELETE /:id - Delete a task
-router.delete("/:id", async (req, res, next) => {
+/**
+ * @route   DELETE /tasks/:id
+ * @desc    Delete a task
+ * @access  Private
+ */
+router.delete("/:id", validateTaskId, async (req, res, next) => {
     try {
         const task = await Task.findByIdAndDelete(req.params.id);
         if (!task) {

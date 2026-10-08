@@ -6,11 +6,13 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const app = express();
+
 const logger = require("./middleware/logger");
 const errorHandler = require("./middleware/errorHandler");
+const authRoutes = require("./routes/authRoutes");
 const taskRoutes = require("./routes/taskRoutes");
 
-// Middleware
+// Built-in & Custom Middleware
 app.use(cors());
 app.use(express.json());
 app.use(logger);
@@ -21,10 +23,32 @@ mongoose.connect(process.env.MONGODB_URI)
         console.log("MongoDB connected successfully");
     })
     .catch((error) => {
-        console.log("MongoDB connection failed");
+        console.error("MongoDB connection failed:", error.message);
     });
 
-// Routes
+// Health check endpoint
+app.get("/health", (req, res) => {
+    res.status(200).json({ status: "OK", timestamp: new Date().toISOString() });
+});
+
+// Authentication Routes (Supports /auth/register, /auth/login, /auth/me)
+app.use("/auth", authRoutes);
+
+// Direct root aliases as specified in the Practical 7 architecture diagram
+app.post("/register", (req, res, next) => {
+    req.url = "/register";
+    authRoutes(req, res, next);
+});
+app.post("/login", (req, res, next) => {
+    req.url = "/login";
+    authRoutes(req, res, next);
+});
+app.get("/me", (req, res, next) => {
+    req.url = "/me";
+    authRoutes(req, res, next);
+});
+
+// Protected Task Routes
 app.use("/tasks", taskRoutes);
 
 // 404 Handler
@@ -37,8 +61,10 @@ app.use((req, res) => {
 // Global Error Handler
 app.use(errorHandler);
 
-// Start Server on Port 5000
-const PORT = 5000;
+// Start Server
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
 });
+
+module.exports = app;
