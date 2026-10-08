@@ -105,6 +105,7 @@ function App() {
     setToken("");
     setUser(null);
     setTasks([]);
+    setAuthMode("login");
     showNotice(customMsg || "Session expired (401). Please sign in again.", "error");
   }, []);
 
